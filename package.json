@@ -1634,6 +1634,11 @@
 				"managementCommand": "github.copilot.chat.manageBYOK"
 			},
 			{
+				"vendor": "iflow",
+				"displayName": "iflow",
+				"managementCommand": "github.copilot.chat.manageBYOK"
+			},
+			{
 				"vendor": "customoai",
 				"when": "productQualityType != 'stable'",
 				"displayName": "OpenAI Compatible",
