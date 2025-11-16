@@ -64,19 +64,26 @@ export abstract class BaseOpenAICompatibleLMProvider implements BYOKModelProvide
 	}
 
 	async provideLanguageModelChatInformation(options: { silent: boolean }, token: CancellationToken): Promise<LanguageModelChatInformation[]> {
+		this._logService.info(`[BYOK ${this._name}] provideLanguageModelChatInformation called with silent=${options.silent}`);
 		if (!this._apiKey && this.authType === BYOKAuthType.GlobalApiKey) { // If we don't have the API key it might just be in storage, so we try to read it first
 			this._apiKey = await this._byokStorageService.getAPIKey(this._name);
+			this._logService.info(`[BYOK ${this._name}] API key from storage: ${this._apiKey ? 'found' : 'not found'}`);
 		}
 		try {
 			if (this._apiKey || this.authType === BYOKAuthType.None) {
+				this._logService.info(`[BYOK ${this._name}] Fetching models with API key`);
 				return byokKnownModelsToAPIInfo(this._name, await this.getAllModels());
 			} else if (options.silent && !this._apiKey) {
+				this._logService.info(`[BYOK ${this._name}] Silent mode, returning empty list`);
 				return [];
 			} else { // Not silent, and no api key = good to prompt user for api key
+				this._logService.info(`[BYOK ${this._name}] Prompting user for API key`);
 				await this.updateAPIKey();
 				if (this._apiKey) {
+					this._logService.info(`[BYOK ${this._name}] API key updated, fetching models`);
 					return byokKnownModelsToAPIInfo(this._name, await this.getAllModels());
 				} else {
+					this._logService.info(`[BYOK ${this._name}] No API key provided, returning empty list`);
 					return [];
 				}
 			}
@@ -103,19 +110,29 @@ export abstract class BaseOpenAICompatibleLMProvider implements BYOKModelProvide
 	}
 
 	async updateAPIKey(): Promise<void> {
+		this._logService.info(`[BYOK ${this._name}] updateAPIKey called`);
 		if (this.authType === BYOKAuthType.None) {
+			this._logService.info(`[BYOK ${this._name}] Auth type is None, skipping`);
 			return;
 		}
-		const newAPIKey = await promptForAPIKey(this._name, await this._byokStorageService.getAPIKey(this._name) !== undefined);
+		const existingKey = await this._byokStorageService.getAPIKey(this._name);
+		this._logService.info(`[BYOK ${this._name}] Existing key: ${existingKey ? 'found' : 'not found'}`);
+		this._logService.info(`[BYOK ${this._name}] Calling promptForAPIKey`);
+		const newAPIKey = await promptForAPIKey(this._name, existingKey !== undefined);
+		this._logService.info(`[BYOK ${this._name}] promptForAPIKey returned: ${newAPIKey === undefined ? 'undefined' : newAPIKey === '' ? 'empty' : 'value'}`);
 		if (newAPIKey === undefined) {
+			this._logService.info(`[BYOK ${this._name}] User canceled`);
 			return;
 		} else if (newAPIKey === '') {
+			this._logService.info(`[BYOK ${this._name}] Deleting API key`);
 			this._apiKey = undefined;
 			await this._byokStorageService.deleteAPIKey(this._name, this.authType);
 		} else if (newAPIKey !== undefined) {
+			this._logService.info(`[BYOK ${this._name}] Storing new API key`);
 			this._apiKey = newAPIKey;
 			await this._byokStorageService.storeAPIKey(this._name, this._apiKey, BYOKAuthType.GlobalApiKey);
 		}
+		this._logService.info(`[BYOK ${this._name}] updateAPIKey completed`);
 	}
 
 	async updateAPIKeyViaCmd(envVarName: string, action: 'update' | 'remove' = 'update', modelId?: string): Promise<void> {

@@ -43,15 +43,24 @@ export class BYOKContrib extends Disposable implements IExtensionContribution {
 	) {
 		super();
 		this._register(commands.registerCommand('github.copilot.chat.manageBYOK', async (vendor: string) => {
+			this._logService.info(`[BYOK] manageBYOK command called for vendor: ${vendor}`);
 			const provider = this._providers.get(vendor);
+
+			if (!provider) {
+				this._logService.error(`[BYOK] Provider not found for vendor: ${vendor}`);
+				return;
+			}
 
 			// Show quick pick for Azure and CustomOAI providers
 			if (provider && (vendor === AzureBYOKModelProvider.providerName.toLowerCase() || vendor === CustomOAIBYOKModelProvider.providerName.toLowerCase())) {
+				this._logService.info(`[BYOK] Opening configurator for ${vendor}`);
 				const configurator = new CustomOAIModelConfigurator(this._configurationService, vendor, provider);
 				await configurator.configureModelOrUpdateAPIKey();
 			} else if (provider) {
 				// For all other providers, directly go to API key management
+				this._logService.info(`[BYOK] Calling updateAPIKey for ${vendor}`);
 				await provider.updateAPIKey();
+				this._logService.info(`[BYOK] updateAPIKey completed for ${vendor}`);
 			}
 		}));
 
@@ -92,7 +101,17 @@ export class BYOKContrib extends Disposable implements IExtensionContribution {
 			this._providers.set(GroqBYOKLMProvider.providerName.toLowerCase(), instantiationService.createInstance(GroqBYOKLMProvider, knownModels[GroqBYOKLMProvider.providerName], this._byokStorageService));
 			this._providers.set(GeminiNativeBYOKLMProvider.providerName.toLowerCase(), instantiationService.createInstance(GeminiNativeBYOKLMProvider, knownModels[GeminiNativeBYOKLMProvider.providerName], this._byokStorageService));
 			this._providers.set(XAIBYOKLMProvider.providerName.toLowerCase(), instantiationService.createInstance(XAIBYOKLMProvider, knownModels[XAIBYOKLMProvider.providerName], this._byokStorageService));
-			this._providers.set(IflowBYOKLMProvider.providerName.toLowerCase(), instantiationService.createInstance(IflowBYOKLMProvider, knownModels[IflowBYOKLMProvider.providerName], this._byokStorageService));
+
+			// iflow registration with error handling
+			try {
+				this._logService.info(`[BYOK] Registering iflow provider, knownModels: ${knownModels[IflowBYOKLMProvider.providerName] ? 'found' : 'not found (will use defaults)'}`);
+				const iflowProvider = instantiationService.createInstance(IflowBYOKLMProvider, knownModels[IflowBYOKLMProvider.providerName], this._byokStorageService);
+				this._providers.set(IflowBYOKLMProvider.providerName.toLowerCase(), iflowProvider);
+				this._logService.info(`[BYOK] iflow provider registered successfully`);
+			} catch (error) {
+				this._logService.error(`[BYOK] Failed to register iflow provider:`, error);
+			}
+
 			this._providers.set(OAIBYOKLMProvider.providerName.toLowerCase(), instantiationService.createInstance(OAIBYOKLMProvider, knownModels[OAIBYOKLMProvider.providerName], this._byokStorageService));
 			this._providers.set(OpenRouterLMProvider.providerName.toLowerCase(), instantiationService.createInstance(OpenRouterLMProvider, this._byokStorageService));
 			this._providers.set(AzureBYOKModelProvider.providerName.toLowerCase(), instantiationService.createInstance(AzureBYOKModelProvider, this._byokStorageService));

@@ -57,9 +57,11 @@ function createInputBoxWithBackButton(options: InputBoxOptions, hideBackButton?:
 
 
 export async function promptForAPIKey(contextName: string, reconfigure: boolean = false): Promise<string | undefined> {
+	console.log(`[promptForAPIKey] Called for ${contextName}, reconfigure=${reconfigure}`);
 	const prompt = reconfigure ? `Enter new ${contextName} API Key or leave blank to delete saved key` : `Enter ${contextName} API Key`;
 	const title = reconfigure ? `Reconfigure ${contextName} API Key - Preview` : `Enter ${contextName} API Key - Preview`;
 
+	console.log(`[promptForAPIKey] Showing input box with title: ${title}`);
 	const result = await createInputBoxWithBackButton({
 		prompt: prompt,
 		title: title,
@@ -72,9 +74,13 @@ export async function promptForAPIKey(contextName: string, reconfigure: boolean 
 		}
 	}, true);
 
+	console.log(`[promptForAPIKey] Input box result: ${result === undefined ? 'undefined' : isBackButtonClick(result) ? 'back button' : 'value provided'}`);
+
 	if (isBackButtonClick(result)) {
+		console.log(`[promptForAPIKey] Returning undefined (back button clicked)`);
 		return undefined;
 	}
 
+	console.log(`[promptForAPIKey] Returning result`);
 	return result;
 }

@@ -5,6 +5,7 @@
 
 import { AuthenticationContrib } from '../../authentication/vscode-node/authentication.contribution';
 import { BYOKContrib } from '../../byok/vscode-node/byokContribution';
+import { TestIflowCommand } from '../../byok/vscode-node/testIflowCommand';
 import { ChatQuotaContribution } from '../../chat/vscode-node/chatQuota.contribution';
 import { ChatSessionsContrib } from '../../chatSessions/vscode-node/chatSessions';
 import * as chatBlockLanguageContribution from '../../codeBlocks/vscode-node/chatBlockLanguageFeatures.contribution';
@@ -110,6 +111,7 @@ export const vscodeNodeChatContributions: IExtensionContributionFactory[] = [
 	asContributionFactory(IgnoredFileProviderContribution),
 	asContributionFactory(RelatedFilesProviderContribution),
 	asContributionFactory(BYOKContrib),
+	asContributionFactory(TestIflowCommand),
 	asContributionFactory(McpSetupCommands),
 	asContributionFactory(LanguageModelProxyContrib),
 	newWorkspaceContribution,

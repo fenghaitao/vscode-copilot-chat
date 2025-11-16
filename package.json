@@ -2195,6 +2195,11 @@
 				"enablement": "false"
 			},
 			{
+				"command": "github.copilot.chat.testConfigureIflow",
+				"title": "GitHub Copilot: Configure iflow (Test)",
+				"category": "GitHub Copilot"
+			},
+			{
 				"command": "github.copilot.chat.manageBYOKAPIKey",
 				"title": "Manage Bring Your Own Key API Key",
 				"enablement": "false"
