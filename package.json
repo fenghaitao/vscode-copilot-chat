@@ -4406,9 +4406,19 @@
 		"vscode-tas-client": "^0.1.84",
 		"web-tree-sitter": "^0.23.0"
 	},
+	"optionalDependencies": {
+		"@emnapi/runtime": "*",
+		"@img/colour": "*",
+		"@img/sharp-libvips-linuxmusl-x64": "*",
+		"@img/sharp-linuxmusl-x64": "*",
+		"@vscode/copilot-typescript-server-plugin": "*",
+		"sharp": "*",
+		"zeromq": "*"
+	},
 	"overrides": {
 		"@aminya/node-gyp-build": "npm:node-gyp-build@4.8.1",
 		"string_decoder": "npm:string_decoder@1.2.0",
-		"node-gyp": "npm:node-gyp@10.3.1"
+		"node-gyp": "npm:node-gyp@10.3.1",
+		"node-pty": "npm:@devm33/node-pty@^1.0.8"
 	}
 }
