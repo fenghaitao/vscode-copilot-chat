@@ -2195,8 +2195,8 @@
 				"enablement": "false"
 			},
 			{
-				"command": "github.copilot.chat.testConfigureIflow",
-				"title": "GitHub Copilot: Configure iflow (Test)",
+				"command": "github.copilot.chat.updateIflowAPIKey",
+				"title": "GitHub Copilot: Update iflow API Key",
 				"category": "GitHub Copilot"
 			},
 			{

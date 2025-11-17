@@ -64,6 +64,17 @@ export class BYOKContrib extends Disposable implements IExtensionContribution {
 			}
 		}));
 
+		this._register(commands.registerCommand('github.copilot.chat.updateIflowAPIKey', async () => {
+			this._logService.info(`[BYOK] updateIflowAPIKey command called`);
+			const provider = this._providers.get('iflow');
+			if (!provider) {
+				this._logService.error(`[BYOK] iflow provider not found`);
+				return;
+			}
+			await provider.updateAPIKey();
+			this._logService.info(`[BYOK] iflow API key updated successfully`);
+		}));
+
 		this._register(commands.registerCommand('github.copilot.chat.manageBYOKAPIKey', async (vendor: string, envVarName: string, action?: 'update' | 'remove', modelId?: string) => {
 			const provider = this._providers.get(vendor);
 			if (!provider) {
