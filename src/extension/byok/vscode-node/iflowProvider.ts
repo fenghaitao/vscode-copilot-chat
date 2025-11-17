@@ -19,8 +19,8 @@ const defaultIflowModels: BYOKKnownModels = {
 		toolCalling: true,
 		vision: true
 	},
-	'kimi-k2-0905': {
-		name: 'kimi-k2-0905',
+	'kimi-k2': {
+		name: 'kimi-k2',
 		maxInputTokens: 256000,
 		maxOutputTokens: 64000,
 		toolCalling: true,
