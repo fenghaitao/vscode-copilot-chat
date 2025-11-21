@@ -12,8 +12,8 @@ import { IBYOKStorageService } from './byokStorageService';
 
 // Default models for iflow if not provided by CDN
 const defaultIflowModels: BYOKKnownModels = {
-	'Qwen3-Coder': {
-		name: 'Qwen3-Coder',
+	'qwen3-coder-plus': {
+		name: 'qwen3-coder-plus',
 		maxInputTokens: 256000,
 		maxOutputTokens: 64000,
 		toolCalling: true,

@@ -39,7 +39,7 @@ iflow is an OpenAI-compatible API provider that requires weekly API key rotation
 
 Once configured, iflow models will appear in your GitHub Copilot model selector. Available models include:
 
-- **Qwen3-Coder**: Advanced coding model with 256K context window
+- **qwen3-coder-plus**: Advanced coding model with 256K context window
 - **kimi-k2-0905**: General-purpose model with vision support
 
 To use an iflow model:
