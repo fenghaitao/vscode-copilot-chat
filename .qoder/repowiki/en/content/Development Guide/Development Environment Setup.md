@@ -15,25 +15,36 @@
 - [script/build/compressTikToken.ts](file://script/build/compressTikToken.ts)
 - [script/build/copyStaticAssets.ts](file://script/build/copyStaticAssets.ts)
 - [README.md](file://README.md)
+- [setup-proxy.sh](file://setup-proxy.sh) - *Added for proxy configuration in restricted networks*
+- [setup-proxy.ps1](file://setup-proxy.ps1) - *Added for proxy configuration in restricted networks*
+- [npm-install-with-proxy.sh](file://npm-install-with-proxy.sh) - *Added for npm installation with proxy support*
 </cite>
+
+## Update Summary
+- Added new section on Proxy Configuration for Restricted Networks
+- Updated Environment Setup section to include proxy configuration scripts
+- Added documentation for new scripts: setup-proxy.sh, setup-proxy.ps1, and npm-install-with-proxy.sh
+- Enhanced troubleshooting section with proxy-related issues
+- Updated platform-specific setup instructions to include proxy configuration
 
 ## Table of Contents
 1. [Introduction](#introduction)
 2. [Prerequisites](#prerequisites)
 3. [Environment Setup](#environment-setup)
-4. [TypeScript Configuration](#typescript-configuration)
-5. [ESLint Configuration](#eslint-configuration)
-6. [Installation Process](#installation-process)
-7. [Platform-Specific Setup](#platform-specific-setup)
-8. [Verification and Testing](#verification-and-testing)
-9. [Troubleshooting](#troubleshooting)
-10. [Advanced Configuration](#advanced-configuration)
+4. [Proxy Configuration for Restricted Networks](#proxy-configuration-for-restricted-networks)
+5. [TypeScript Configuration](#typescript-configuration)
+6. [ESLint Configuration](#eslint-configuration)
+7. [Installation Process](#installation-process)
+8. [Platform-Specific Setup](#platform-specific-setup)
+9. [Verification and Testing](#verification-and-testing)
+10. [Troubleshooting](#troubleshooting)
+11. [Advanced Configuration](#advanced-configuration)
 
 ## Introduction
 
 GitHub Copilot Chat is a sophisticated AI-powered development tool that integrates with Visual Studio Code to provide conversational AI assistance for coding tasks. Setting up a development environment for this project requires careful attention to Node.js version requirements, TypeScript configuration, and platform-specific dependencies.
 
-This comprehensive guide covers everything from initial prerequisites to advanced troubleshooting, ensuring developers can effectively contribute to the GitHub Copilot Chat project across different operating systems.
+This comprehensive guide covers everything from initial prerequisites to advanced troubleshooting, ensuring developers can effectively contribute to the GitHub Copilot Chat project across different operating systems. This update specifically addresses the new proxy configuration scripts for developers working in restricted network environments.
 
 ## Prerequisites
 
@@ -98,6 +109,73 @@ npx tsx script/setup/copySources.ts
 **Section sources**
 - [script/setup/copySources.ts](file://script/setup/copySources.ts#L133-L205)
 - [script/applyLocalDts.sh](file://script/applyLocalDts.sh#L1-L6)
+
+## Proxy Configuration for Restricted Networks
+
+For developers working in corporate or restricted network environments, special proxy configuration is required to successfully install dependencies and download Electron binaries.
+
+### Proxy Configuration Scripts
+
+The repository includes platform-specific scripts to configure proxy settings for Electron downloads and npm installations:
+
+- **setup-proxy.sh**: Bash script for Unix-based systems (Linux, macOS)
+- **setup-proxy.ps1**: PowerShell script for Windows systems
+- **npm-install-with-proxy.sh**: Script for installing npm packages with proxy support
+
+### Using the Proxy Configuration Scripts
+
+#### For Unix-based Systems (Linux/macOS)
+
+```bash
+# Configure proxy with explicit URL
+source setup-proxy.sh http://proxy.example.com:8080
+
+# Or use existing https_proxy environment variable
+source setup-proxy.sh
+
+# Install dependencies
+npm install
+```
+
+#### For Windows Systems
+
+```powershell
+# Configure proxy with explicit URL
+.\setup-proxy.ps1 http://proxy.example.com:8080
+
+# Or use existing HTTPS_PROXY environment variable
+.\setup-proxy.ps1
+
+# Install dependencies
+npm install
+```
+
+### Alternative Installation with Proxy
+
+For environments requiring special handling of Playwright browser downloads, use the dedicated installation script:
+
+```bash
+# Install npm packages with proxy support
+./npm-install-with-proxy.sh
+```
+
+This script:
+1. Sets PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 to skip browser download during npm install
+2. Runs npm install
+3. Installs Playwright Chromium browser separately with proxy support
+
+### Proxy Environment Variables
+
+The setup scripts configure the following environment variables:
+
+- **Standard Proxy Variables**: HTTP_PROXY, HTTPS_PROXY, http_proxy, https_proxy
+- **Global Agent Variables**: GLOBAL_AGENT_HTTP_PROXY, GLOBAL_AGENT_HTTPS_PROXY
+- **Electron-specific Variables**: ELECTRON_GET_USE_PROXY=true, GLOBAL_AGENT_FORCE_GLOBAL_AGENT=true
+
+**Section sources**
+- [setup-proxy.sh](file://setup-proxy.sh#L1-L53) - *Added for proxy configuration*
+- [setup-proxy.ps1](file://setup-proxy.ps1#L1-L53) - *Added for proxy configuration*
+- [npm-install-with-proxy.sh](file://npm-install-with-proxy.sh#L1-L12) - *Added for proxy installation*
 
 ## TypeScript Configuration
 
@@ -266,6 +344,9 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 # Run setup scripts
 .\script\applyLocalDts.sh
 .\script\simulate.ps1
+
+# For restricted networks, configure proxy
+.\setup-proxy.ps1 http://proxy.example.com:8080
 ```
 
 ### macOS Setup
@@ -279,6 +360,9 @@ xcode-select --install
 # Run Unix-style setup scripts
 ./script/applyLocalDts.sh
 ./script/simulate.sh
+
+# For restricted networks, configure proxy
+source setup-proxy.sh http://proxy.example.com:8080
 ```
 
 ### Linux Setup
@@ -296,6 +380,9 @@ sudo yum groupinstall "Development Tools"
 # Run setup scripts
 ./script/applyLocalDts.sh
 ./script/simulate.sh
+
+# For restricted networks, configure proxy
+source setup-proxy.sh http://proxy.example.com:8080
 ```
 
 **Section sources**
@@ -389,6 +476,15 @@ npm run check:vscode
 2. Install platform-specific build tools
 3. Check for conflicting native module versions
 
+#### Proxy Configuration Issues
+
+**Problem**: Network requests fail in restricted environments
+**Solution**:
+1. Use setup-proxy.sh (Unix) or setup-proxy.ps1 (Windows) to configure proxy
+2. Verify all required proxy environment variables are set
+3. Use npm-install-with-proxy.sh for Playwright browser downloads
+4. Uncomment NODE_TLS_REJECT_UNAUTHORIZED=0 in setup scripts if certificate verification is problematic
+
 ### Performance Issues
 
 #### Slow Build Times
@@ -427,6 +523,8 @@ npm run check:vscode
 
 **Section sources**
 - [script/postinstall.ts](file://script/postinstall.ts#L116-L168)
+- [setup-proxy.sh](file://setup-proxy.sh#L42-L43)
+- [setup-proxy.ps1](file://setup-proxy.ps1#L42-L43)
 
 ## Advanced Configuration
 

@@ -11,7 +11,18 @@
 - [openAIProvider.ts](file://src/extension/byok/vscode-node/openAIProvider.ts)
 - [baseOpenAICompatibleProvider.ts](file://src/extension/byok/vscode-node/baseOpenAICompatibleProvider.ts)
 - [byokContribution.ts](file://src/extension/byok/vscode-node/byokContribution.ts)
+- [iflowProvider.ts](file://src/extension/byok/vscode-node/iflowProvider.ts) - *Added in recent commit*
 </cite>
+
+## Update Summary
+**Changes Made**   
+- Added new section for Iflow provider integration
+- Updated BYOK Architecture Overview diagram to include Iflow provider
+- Added new sequence diagram for Iflow provider registration with error handling
+- Updated Provider Implementation Details class diagram to include IflowBYOKLMProvider
+- Enhanced logging details in Authentication and Credential Management section
+- Added new section for command github.copilot.chat.updateIflowAPIKey
+- Updated Troubleshooting Common Issues with Iflow-specific guidance
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -22,12 +33,14 @@
 6. [Endpoint Configuration and Request Formatting](#endpoint-configuration-and-request-formatting)
 7. [Model Capabilities and Chat Model Integration](#model-capabilities-and-chat-model-integration)
 8. [Provider-Specific Configuration](#provider-specific-configuration)
-9. [Troubleshooting Common Issues](#troubleshooting-common-issues)
-10. [Conclusion](#conclusion)
+9. [Iflow Provider Integration](#iflow-provider-integration)
+10. [Command github.copilot.chat.updateIflowAPIKey](#command-githubcopilotchatupdateiflowapikey)
+11. [Troubleshooting Common Issues](#troubleshooting-common-issues)
+12. [Conclusion](#conclusion)
 
 ## Introduction
 
-The Bring Your Own Key (BYOK) system in GitHub Copilot Chat enables users to connect to various AI providers using their own API credentials. This architecture allows integration with multiple AI services including Azure, Gemini, Ollama, OpenAI, Groq, and xAI, providing flexibility in choosing AI models and deployment options. The BYOK framework is designed to securely manage credentials, handle provider-specific configurations, and maintain consistent chat model capabilities across different providers.
+The Bring Your Own Key (BYOK) system in GitHub Copilot Chat enables users to connect to various AI providers using their own API credentials. This architecture allows integration with multiple AI services including Azure, Gemini, Ollama, OpenAI, Groq, xAI, and the newly added Iflow provider, providing flexibility in choosing AI models and deployment options. The BYOK framework is designed to securely manage credentials, handle provider-specific configurations, and maintain consistent chat model capabilities across different providers.
 
 **Section sources**
 - [byokProvider.ts](file://src/extension/byok/common/byokProvider.ts)
@@ -59,6 +72,7 @@ F --> R[Ollama Provider]
 F --> S[OpenAI Provider]
 F --> T[Groq Provider]
 F --> U[xAI Provider]
+F --> V[Iflow Provider]
 ```
 
 **Diagram sources**
@@ -128,6 +142,12 @@ class OAIBYOKLMProvider {
 +providerName : string
 +getModelInfo() : Promise~IChatModelInformation~
 }
+class IflowBYOKLMProvider {
++providerName : string
++_mergedModels : BYOKKnownModels
++provideLanguageModelChatInformation() : Promise~LanguageModelChatInformation[]~
++getAllModels() : Promise~BYOKKnownModels~
+}
 BYOKModelProvider <|-- BaseOpenAICompatibleLMProvider
 BaseOpenAICompatibleLMProvider <|-- AzureBYOKModelProvider
 BaseOpenAICompatibleLMProvider <|-- GeminiBYOKLMProvider
@@ -135,6 +155,7 @@ BaseOpenAICompatibleLMProvider <|-- OllamaLMProvider
 BaseOpenAICompatibleLMProvider <|-- OAIBYOKLMProvider
 BaseOpenAICompatibleLMProvider <|-- GroqBYOKLMProvider
 BaseOpenAICompatibleLMProvider <|-- XAIBYOKLMProvider
+BaseOpenAICompatibleLMProvider <|-- IflowBYOKLMProvider
 ```
 
 **Diagram sources**
@@ -144,6 +165,7 @@ BaseOpenAICompatibleLMProvider <|-- XAIBYOKLMProvider
 - [geminiProvider.ts](file://src/extension/byok/vscode-node/geminiProvider.ts)
 - [ollamaProvider.ts](file://src/extension/byok/vscode-node/ollamaProvider.ts)
 - [openAIProvider.ts](file://src/extension/byok/vscode-node/openAIProvider.ts)
+- [iflowProvider.ts](file://src/extension/byok/vscode-node/iflowProvider.ts)
 
 **Section sources**
 - [baseOpenAICompatibleProvider.ts](file://src/extension/byok/vscode-node/baseOpenAICompatibleProvider.ts)
@@ -151,10 +173,13 @@ BaseOpenAICompatibleLMProvider <|-- XAIBYOKLMProvider
 - [geminiProvider.ts](file://src/extension/byok/vscode-node/geminiProvider.ts)
 - [ollamaProvider.ts](file://src/extension/byok/vscode-node/ollamaProvider.ts)
 - [openAIProvider.ts](file://src/extension/byok/vscode-node/openAIProvider.ts)
+- [iflowProvider.ts](file://src/extension/byok/vscode-node/iflowProvider.ts)
 
 ## Authentication and Credential Management
 
 The BYOK system implements a secure credential management system through the `BYOKStorageService` class, which handles API key storage and retrieval using VS Code's secrets API. Credentials are stored with provider-specific keys following the pattern `copilot-byok-{providerName}-{modelId}-api-key` for model-specific keys or `copilot-byok-{providerName}-api-key` for provider-level keys.
+
+The system has been enhanced with comprehensive logging throughout the authentication process. Each step in the API key management workflow is logged with detailed information, including the provider name, key status, and user actions. This logging is implemented using the `ILogService` and follows the pattern `[BYOK ${providerName}] action description` for easy filtering and debugging.
 
 ```mermaid
 sequenceDiagram
@@ -191,6 +216,7 @@ end
 **Section sources**
 - [byokStorageService.ts](file://src/extension/byok/vscode-node/byokStorageService.ts)
 - [byokUIService.ts](file://src/extension/byok/vscode-node/byokUIService.ts)
+- [baseOpenAICompatibleProvider.ts](file://src/extension/byok/vscode-node/baseOpenAICompatibleProvider.ts)
 
 ## Endpoint Configuration and Request Formatting
 
@@ -309,6 +335,53 @@ The OpenAI provider uses the GlobalApiKey authentication pattern and connects to
 - [ollamaProvider.ts](file://src/extension/byok/vscode-node/ollamaProvider.ts)
 - [openAIProvider.ts](file://src/extension/byok/vscode-node/openAIProvider.ts)
 
+## Iflow Provider Integration
+
+The Iflow provider has been integrated into the BYOK system as a new OpenAI-compatible provider. It is implemented through the `IflowBYOKLMProvider` class which extends `BaseOpenAICompatibleLMProvider`. The provider is configured with the base URL `https://apis.iflow.cn/v1` and uses GlobalApiKey authentication.
+
+A key feature of the Iflow provider is its resilience through default models. The provider defines default models (Qwen3-Coder and kimi-k2) with comprehensive capabilities including tool calling and vision support. These default models are merged with CDN-provided models, with CDN models taking precedence.
+
+```mermaid
+sequenceDiagram
+participant BYOKContribution
+participant IflowProvider
+participant Logger
+BYOKContribution->>Logger : Log registration attempt
+BYOKContribution->>IflowProvider : Create instance with knownModels
+IflowProvider->>IflowProvider : Merge default models with CDN models
+IflowProvider->>Logger : Log initialization with model count
+IflowProvider-->>BYOKContribution : Return provider instance
+BYOKContribution->>Logger : Log successful registration
+alt Registration fails
+BYOKContribution->>Logger : Log error with exception details
+end
+```
+
+**Diagram sources**
+- [iflowProvider.ts](file://src/extension/byok/vscode-node/iflowProvider.ts)
+- [byokContribution.ts](file://src/extension/byok/vscode-node/byokContribution.ts)
+
+**Section sources**
+- [iflowProvider.ts](file://src/extension/byok/vscode-node/iflowProvider.ts)
+- [byokContribution.ts](file://src/extension/byok/vscode-node/byokContribution.ts)
+
+## Command github.copilot.chat.updateIflowAPIKey
+
+A new command `github.copilot.chat.updateIflowAPIKey` has been added to specifically manage the Iflow provider's API key. This command is registered in the `BYOKContrib` class and provides a dedicated way to update the Iflow API key without going through the generic BYOK management interface.
+
+When executed, the command:
+1. Retrieves the Iflow provider instance from the providers map
+2. Calls the provider's `updateAPIKey()` method to initiate the key update process
+3. Uses the standard UI flow through `byokUIService` to prompt the user for the new API key
+4. Stores the key securely using `BYOKStorageService`
+5. Logs the operation status for debugging purposes
+
+The command enhances user experience by providing a direct way to manage the Iflow API key and improves debugging through comprehensive logging at each step of the process.
+
+**Section sources**
+- [byokContribution.ts](file://src/extension/byok/vscode-node/byokContribution.ts)
+- [iflowProvider.ts](file://src/extension/byok/vscode-node/iflowProvider.ts)
+
 ## Troubleshooting Common Issues
 
 ### Authentication Failures
@@ -326,19 +399,29 @@ Some providers require region-specific endpoints. For Azure, ensure the deployme
 ### Version Compatibility
 The Ollama provider requires version 0.6.4 or higher. If encountering connection issues, verify the Ollama server version and upgrade if necessary. The system will display a clear error message with upgrade instructions when the version is incompatible.
 
+### Iflow-Specific Issues
+For the Iflow provider, specific issues may include:
+- API key not being properly configured: Use the `github.copilot.chat.updateIflowAPIKey` command to configure the key
+- Model discovery failures: The provider will automatically fall back to default models (Qwen3-Coder, kimi-k2) if the API call to fetch models fails
+- Visibility in "Add Models": The provider is designed to appear in the "Add Models" interface even without an API key configured, using the default models for visibility
+
 ### Configuration Guidance
 - For Azure: Use the full deployment URL from the Azure portal and ensure the API key has appropriate permissions
 - For Gemini: Use the API key from Google Cloud Console with the Generative Language API enabled
 - For Ollama: Ensure the Ollama server is running and accessible at the configured endpoint
 - For OpenAI: Use an API key with appropriate permissions from the OpenAI platform
+- For Iflow: Use an API key from the Iflow platform and ensure network connectivity to `https://apis.iflow.cn/v1`
 
 **Section sources**
 - [ollamaProvider.ts](file://src/extension/byok/vscode-node/ollamaProvider.ts)
 - [azureProvider.ts](file://src/extension/byok/vscode-node/azureProvider.ts)
 - [byokProvider.ts](file://src/extension/byok/common/byokProvider.ts)
+- [iflowProvider.ts](file://src/extension/byok/vscode-node/iflowProvider.ts)
 
 ## Conclusion
 
 The BYOK provider system in GitHub Copilot Chat provides a flexible and secure framework for integrating with various AI providers. By implementing a consistent interface across different providers, the system enables users to leverage their preferred AI services while maintaining a unified user experience. The architecture emphasizes security through proper credential management, extensibility through modular design, and reliability through comprehensive error handling and version compatibility checks.
+
+Recent updates have enhanced the system with the integration of the Iflow provider, which demonstrates the framework's flexibility through its implementation of default models for resilience and comprehensive logging for improved debugging. The addition of the dedicated `github.copilot.chat.updateIflowAPIKey` command shows the system's ability to support provider-specific management while maintaining consistency with the overall BYOK architecture.
 
 The system's design allows for easy addition of new providers by implementing the core interface and leveraging shared base classes where appropriate. This approach ensures consistency while accommodating provider-specific requirements for authentication, endpoint configuration, and request formatting.
