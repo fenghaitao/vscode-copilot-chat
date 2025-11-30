@@ -37,45 +37,45 @@ The `IEndpointProvider` interface defines the contract for endpoint providers, i
 ```mermaid
 classDiagram
 class IEndpointProvider {
-+getAllCompletionModels(forceRefresh? : boolean) Promise~ICompletionModelInformation[]~
-+getAllChatEndpoints() Promise~IChatEndpoint[]~
-+getChatEndpoint(requestOrFamily : LanguageModelChat | ChatRequest | ChatEndpointFamily) Promise~IChatEndpoint~
-+getEmbeddingsEndpoint(family? : EmbeddingsEndpointFamily) Promise~IEmbeddingsEndpoint~
+    +getAllCompletionModels(forceRefresh? : boolean) Promise~ICompletionModelInformation[]~
+    +getAllChatEndpoints() Promise~IChatEndpoint[]~
+    +getChatEndpoint(requestOrFamily : LanguageModelChat | ChatRequest | ChatEndpointFamily) Promise~IChatEndpoint~
+    +getEmbeddingsEndpoint(family? : EmbeddingsEndpointFamily) Promise~IEmbeddingsEndpoint~
 }
 class IChatEndpoint {
-+urlOrRequestMetadata : string | RequestMetadata
-+modelMaxPromptTokens : number
-+name : string
-+version : string
-+family : string
-+tokenizer : TokenizerType
-+maxOutputTokens : number
-+model : string
-+apiType? : string
-+supportsThinkingContentInHistory? : boolean
-+supportsToolCalls : boolean
-+supportsVision : boolean
-+supportsPrediction : boolean
-+supportedEditTools? : readonly EndpointEditToolName[]
-+showInModelPicker : boolean
-+isPremium? : boolean
-+degradationReason? : string
-+multiplier? : number
-+restrictedToSkus? : string[]
-+isDefault : boolean
-+isFallback : boolean
-+customModel? : CustomModel
-+isExtensionContributed? : boolean
-+policy : 'enabled' | { terms : string }
-+processResponseFromChatEndpoint(telemetryService : ITelemetryService, logService : ILogService, response : Response, expectedNumChoices : number, finishCallback : FinishedCallback, telemetryData : TelemetryData, cancellationToken? : CancellationToken) Promise~AsyncIterableObject~ChatCompletion~~
-+acceptChatPolicy() Promise~boolean~
-+makeChatRequest(debugName : string, messages : Raw.ChatMessage[], finishedCb : FinishedCallback | undefined, token : CancellationToken, location : ChatLocation, source? : Source, requestOptions? : Omit~OptionalChatRequestParams, 'n'~, userInitiatedRequest? : boolean, telemetryProperties? : TelemetryProperties) Promise~ChatResponse~
-+makeChatRequest2(options : IMakeChatRequestOptions, token : CancellationToken) Promise~ChatResponse~
-+createRequestBody(options : ICreateEndpointBodyOptions) IEndpointBody
-+cloneWithTokenOverride(modelMaxPromptTokens : number) IChatEndpoint
+    +urlOrRequestMetadata : string | RequestMetadata
+    +modelMaxPromptTokens : number
+    +name : string
+    +version : string
+    +family : string
+    +tokenizer : TokenizerType
+    +maxOutputTokens : number
+    +model : string
+    +apiType? : string
+    +supportsThinkingContentInHistory? : boolean
+    +supportsToolCalls : boolean
+    +supportsVision : boolean
+    +supportsPrediction : boolean
+    +supportedEditTools? : readonly EndpointEditToolName[]
+    +showInModelPicker : boolean
+    +isPremium? : boolean
+    +degradationReason? : string
+    +multiplier? : number
+    +restrictedToSkus? : string[]
+    +isDefault : boolean
+    +isFallback : boolean
+    +customModel? : CustomModel
+    +isExtensionContributed? : boolean
+    +policy : 'enabled' | '{\'terms\' : \'string\'}'
+    +processResponseFromChatEndpoint(telemetryService : ITelemetryService, logService : ILogService, response : Response, expectedNumChoices : number, finishCallback : FinishedCallback, telemetryData : TelemetryData, cancellationToken? : CancellationToken) Promise~AsyncIterableObject~ChatCompletion~~
+    +acceptChatPolicy() Promise~boolean~
+    +makeChatRequest(debugName : string, messages : Raw.ChatMessage[], finishedCb : FinishedCallback | undefined, token : CancellationToken, location : ChatLocation, source? : Source, requestOptions? : Omit~OptionalChatRequestParams, 'n'~, userInitiatedRequest? : boolean, telemetryProperties? : TelemetryProperties) Promise~ChatResponse~
+    +makeChatRequest2(options : IMakeChatRequestOptions, token : CancellationToken) Promise~ChatResponse~
+    +createRequestBody(options : ICreateEndpointBodyOptions) IEndpointBody
+    +cloneWithTokenOverride(modelMaxPromptTokens : number) IChatEndpoint
 }
 class IEmbeddingsEndpoint {
-+maxBatchSize : number
+    +maxBatchSize : number
 }
 IEndpointProvider --> IChatEndpoint : "provides"
 IEndpointProvider --> IEmbeddingsEndpoint : "provides"
@@ -94,58 +94,88 @@ The capabilities are defined through interfaces that describe various aspects of
 
 ```mermaid
 classDiagram
-class IChatModelCapabilities {
-+type : 'chat'
-+family : string
-+tokenizer : TokenizerType
-+limits? : {
-max_prompt_tokens? : number
-max_output_tokens? : number
-max_context_window_tokens? : number
-}
-+supports : {
-parallel_tool_calls? : boolean
-tool_calls? : boolean
-streaming : boolean | undefined
-vision? : boolean
-prediction? : boolean
-thinking? : boolean
-}
-}
-class IEmbeddingModelCapabilities {
-+type : 'embeddings'
-+family : string
-+tokenizer : TokenizerType
-+limits? : { max_inputs? : number }
-}
-class ICompletionModelCapabilities {
-+type : 'completion'
-+family : string
-+tokenizer : TokenizerType
-}
-class ModelSupportedEndpoint {
-+ChatCompletions = '/chat/completions'
-+Responses = '/responses'
-}
-class IModelAPIResponse {
-+id : string
-+name : string
-+policy? : ModelPolicy
-+model_picker_enabled : boolean
-+preview? : boolean
-+is_chat_default : boolean
-+is_chat_fallback : boolean
-+version : string
-+warning_messages? : { code : string; message : string }[]
-+info_messages? : { code : string; message : string }[]
-+billing? : { is_premium : boolean; multiplier : number; restricted_to? : string[] }
-+capabilities : IChatModelCapabilities | ICompletionModelCapabilities | IEmbeddingModelCapabilities
-+supported_endpoints? : ModelSupportedEndpoint[]
-+custom_model? : { key_name : string; owner_name : string }
-}
-IChatModelCapabilities <|-- IModelAPIResponse
-IEmbeddingModelCapabilities <|-- IModelAPIResponse
-ICompletionModelCapabilities <|-- IModelAPIResponse
+    class IChatModelCapabilities {
+        +type : 'chat'
+        +family : string
+        +tokenizer : TokenizerType
+        +limits? : IChatLimits
+        +supports : IChatSupports
+    }
+    class IChatLimits {
+        +max_prompt_tokens? : number
+        +max_output_tokens? : number
+        +max_context_window_tokens? : number
+    }
+    class IChatSupports {
+        +parallel_tool_calls? : boolean
+        +tool_calls? : boolean
+        +streaming : boolean | undefined
+        +vision? : boolean
+        +prediction? : boolean
+        +thinking? : boolean
+    }
+    class IEmbeddingModelCapabilities {
+        +type : 'embeddings'
+        +family : string
+        +tokenizer : TokenizerType
+        +limits? : IEmbeddingLimits
+    }
+    class IEmbeddingLimits {
+        +max_inputs? : number
+    }
+    class ICompletionModelCapabilities {
+        +type : 'completion'
+        +family : string
+        +tokenizer : TokenizerType
+    }
+    class ModelSupportedEndpoint {
+        +ChatCompletions : '/chat/completions'
+        +Responses : '/responses'
+    }
+    class IModelAPIResponse {
+        +id : string
+        +name : string
+        +policy? : ModelPolicy
+        +model_picker_enabled : boolean
+        +preview? : boolean
+        +is_chat_default : boolean
+        +is_chat_fallback : boolean
+        +version : string
+        +warning_messages? : IWarningMessage[]
+        +info_messages? : IInfoMessage[]
+        +billing? : IBillingInfo
+        +capabilities : IChatModelCapabilities | ICompletionModelCapabilities | IEmbeddingModelCapabilities
+        +supported_endpoints? : ModelSupportedEndpoint[]
+        +custom_model? : ICustomModel
+    }
+    class IWarningMessage {
+        +code : string
+        +message : string
+    }
+    class IInfoMessage {
+        +code : string
+        +message : string
+    }
+    class IBillingInfo {
+        +is_premium : boolean
+        +multiplier : number
+        +restricted_to? : string[]
+    }
+    class ICustomModel {
+        +key_name : string
+        +owner_name : string
+    }
+
+    IChatModelCapabilities <|-- IModelAPIResponse
+    IEmbeddingModelCapabilities <|-- IModelAPIResponse
+    ICompletionModelCapabilities <|-- IModelAPIResponse
+    IChatModelCapabilities : IChatLimits
+    IChatModelCapabilities : IChatSupports
+    IEmbeddingModelCapabilities : IEmbeddingLimits
+    IModelAPIResponse : IWarningMessage
+    IModelAPIResponse : IInfoMessage
+    IModelAPIResponse : IBillingInfo
+    IModelAPIResponse : ICustomModel
 ```
 
 **Diagram sources**
@@ -163,88 +193,69 @@ The request schema includes parameters such as messages, model selection, temper
 ```mermaid
 classDiagram
 class IEndpointBody {
-+tools? : (OpenAiFunctionTool | OpenAiResponsesFunctionTool)[]
-+model? : string
-+previous_response_id? : string
-+max_tokens? : number
-+max_output_tokens? : number
-+max_completion_tokens? : number
-+temperature? : number
-+top_p? : number
-+stream? : boolean
-+prediction? : Prediction
-+messages? : any[]
-+n? : number
-+reasoning? : { effort? : string; summary? : string }
-+tool_choice? : OptionalChatRequestParams['tool_choice'] | { type : 'function'; name : string }
-+top_logprobs? : number
-+intent? : boolean
-+intent_threshold? : number
-+state? : 'enabled'
-+snippy? : { enabled : boolean }
-+stream_options? : { include_usage? : boolean }
-+prompt? : string
-+dimensions? : number
-+embed? : boolean
-+qos? : any
-+content? : string
-+path? : string
-+local_hashes? : string[]
-+language_id? : number
-+query? : string
-+scopingQuery? : string
-+limit? : number
-+similarity? : number
-+scoping_query? : string
-+input? : readonly any[]
-+truncation? : 'auto' | 'disabled'
-+include? : ['reasoning.encrypted_content']
-+store? : boolean
+    +tools? : (OpenAiFunctionTool | OpenAiResponsesFunctionTool)[]
+    +model? : string
+    +previous_response_id? : string
+    +max_tokens? : number
+    +max_output_tokens? : number
+    +max_completion_tokens? : number
+    +temperature? : number
+    +top_p? : number
+    +stream? : boolean
+    +prediction? : Prediction
+    +messages? : any[]
+    +n? : number
+    +reasoning? : object
+    +tool_choice? : OptionalChatRequestParams['tool_choice'] | object
+    +top_logprobs? : number
+    +intent? : boolean
+    +intent_threshold? : number
+    +state? : 'enabled'
+    +snippy? : object
+    +stream_options? : object
+    +prompt? : string
+    +dimensions? : number
+    +embed? : boolean
+    +qos? : any
+    +content? : string
+    +path? : string
+    +local_hashes? : string[]
+    +language_id? : number
+    +query? : string
+    +scopingQuery? : string
+    +limit? : number
+    +similarity? : number
+    +scoping_query? : string
+    +input? : readonly any[]
+    +truncation? : 'auto' | 'disabled'
+    +include? : string[]
+    +store? : boolean
 }
 class IMakeChatRequestOptions {
-+debugName : string
-+messages : Raw.ChatMessage[]
-+ignoreStatefulMarker? : boolean
-+finishedCb : FinishedCallback | undefined
-+location : ChatLocation
-+source? : Source
-+requestOptions? : Omit~OptionalChatRequestParams, 'n'~
-+userInitiatedRequest? : boolean
-+telemetryProperties? : TelemetryProperties
-+enableRetryOnFilter? : boolean
-+enableRetryOnError? : boolean
-+useFetcher? : FetcherId
+    +debugName : string
+    +messages : Raw.ChatMessage[]
+    +ignoreStatefulMarker? : boolean
+    +finishedCb : FinishedCallback | undefined
+    +location : ChatLocation
+    +source? : Source
+    +requestOptions? : Omit~OptionalChatRequestParams, 'n'~
+    +userInitiatedRequest? : boolean
+    +telemetryProperties? : TelemetryProperties
+    +enableRetryOnFilter? : boolean
+    +enableRetryOnError? : boolean
+    +useFetcher? : FetcherId
 }
 class ICreateEndpointBodyOptions {
-+requestId : string
-+postOptions : OptionalChatRequestParams
+    +requestId : string
+    +postOptions : OptionalChatRequestParams
 }
 class ChatCompletion {
-+id : string
-+object : string
-+created : number
-+model : string
-+choices : Array~{
-index : number
-message : {
-role : string
-content : string
-tool_calls? : Array~{
-id : string
-type : string
-function : {
-name : string
-arguments : string
-}
-}~
-}
-finish_reason : string
-}~
-+usage? : {
-prompt_tokens : number
-completion_tokens : number
-total_tokens : number
-}
+    +id : string
+    +object : string
+    +created : number
+    +model : string
+    +choices : Array~object~
+    +usage? : object
 }
 IEndpointBody <|-- ICreateEndpointBodyOptions
 ICreateEndpointBodyOptions <|-- IMakeChatRequestOptions
@@ -475,21 +486,21 @@ The Claude agent implementation includes support for Anthropic's tool calling fo
 ```mermaid
 classDiagram
 class IChatEndpoint {
-+processResponseFromChatEndpoint(telemetryService : ITelemetryService, logService : ILogService, response : Response, expectedNumChoices : number, finishCallback : FinishedCallback, telemetryData : TelemetryData, cancellationToken? : CancellationToken) Promise~AsyncIterableObject~ChatCompletion~~
-+makeChatRequest(debugName : string, messages : Raw.ChatMessage[], finishedCb : FinishedCallback | undefined, token : CancellationToken, location : ChatLocation, source? : Source, requestOptions? : Omit~OptionalChatRequestParams, 'n'~, userInitiatedRequest? : boolean, telemetryProperties? : TelemetryProperties) Promise~ChatResponse~
-+createRequestBody(options : ICreateEndpointBodyOptions) IEndpointBody
+    +processResponseFromChatEndpoint(telemetryService : ITelemetryService, logService : ILogService, response : Response, expectedNumChoices : number, finishCallback : FinishedCallback, telemetryData : TelemetryData, cancellationToken? : CancellationToken) : Promise~AsyncIterableObject~ChatCompletion~~
+    +makeChatRequest(debugName : string, messages : Raw.ChatMessage[], finishedCb : FinishedCallback | undefined, token : CancellationToken, location : ChatLocation, source? : Source, requestOptions? : Omit~OptionalChatRequestParams, 'n'~, userInitiatedRequest? : boolean, telemetryProperties? : TelemetryProperties) : Promise~ChatResponse~
+    +createRequestBody(options : ICreateEndpointBodyOptions) : IEndpointBody
 }
 class ClaudeAgent {
-+createRequestBody(options : ICreateEndpointBodyOptions) IEndpointBody
-+processResponseFromChatEndpoint(telemetryService : ITelemetryService, logService : ILogService, response : Response, expectedNumChoices : number, finishCallback : FinishedCallback, telemetryData : TelemetryData, cancellationToken? : CancellationToken) Promise~AsyncIterableObject~ChatCompletion~~
-+formatToolCalls(toolCalls : {name : string, arguments : string}[]) string
-+parseToolResponses(response : string) {toolName : string, result : string}[]
+    +createRequestBody(options : ICreateEndpointBodyOptions) : IEndpointBody
+    +processResponseFromChatEndpoint(telemetryService : ITelemetryService, logService : ILogService, response : Response, expectedNumChoices : number, finishCallback : FinishedCallback, telemetryData : TelemetryData, cancellationToken? : CancellationToken) : Promise~AsyncIterableObject~ChatCompletion~~
+    +formatToolCalls(toolCalls : object[]) : string
+    +parseToolResponses(response : string) : object[]
 }
 class CopilotCliAgent {
-+createRequestBody(options : ICreateEndpointBodyOptions) IEndpointBody
-+processResponseFromChatEndpoint(telemetryService : ITelemetryService, logService : ILogService, response : Response, expectedNumChoices : number, finishCallback : FinishedCallback, telemetryData : TelemetryData, cancellationToken? : CancellationToken) Promise~AsyncIterableObject~ChatCompletion~~
-+executeCommand(command : string) Promise~string~
-+getAvailableTools() {name : string, description : string}[]
+    +createRequestBody(options : ICreateEndpointBodyOptions) : IEndpointBody
+    +processResponseFromChatEndpoint(telemetryService : ITelemetryService, logService : ILogService, response : Response, expectedNumChoices : number, finishCallback : FinishedCallback, telemetryData : TelemetryData, cancellationToken? : CancellationToken) : Promise~AsyncIterableObject~ChatCompletion~~
+    +executeCommand(command : string) : Promise~string~
+    +getAvailableTools() : object[]
 }
 IChatEndpoint <|-- ClaudeAgent
 IChatEndpoint <|-- CopilotCliAgent
