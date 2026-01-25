@@ -1,0 +1,56 @@
+{
+  "metadata": {
+    "version": "1.0.0",
+    "embedding_model": "text-embedding-3-small-512"
+  },
+  "statistics": {
+    "file_count": 2,
+    "total_chunks": 2
+  },
+  "files": [
+    {
+      "uri": "file:///test_workspace/example.py",
+      "path": "/test_workspace/example.py",
+      "content_version_id": "12345",
+      "chunks": [
+        {
+          "text": "def authenticate_user(username: str, password: str) -> bool:\n    ...",
+          "range": {
+            "start": {
+              "line": 1,
+              "column": 1
+            },
+            "end": {
+              "line": 10,
+              "column": 80
+            }
+          },
+          "chunk_hash": "hash1",
+          "embedding_dimensions": 512
+        }
+      ]
+    },
+    {
+      "uri": "file:///test_workspace/utils.ts",
+      "path": "/test_workspace/utils.ts",
+      "content_version_id": "67890",
+      "chunks": [
+        {
+          "text": "export function formatDate(date: Date): string { ... }",
+          "range": {
+            "start": {
+              "line": 1,
+              "column": 1
+            },
+            "end": {
+              "line": 8,
+              "column": 50
+            }
+          },
+          "chunk_hash": "hash2",
+          "embedding_dimensions": 512
+        }
+      ]
+    }
+  ]
+}

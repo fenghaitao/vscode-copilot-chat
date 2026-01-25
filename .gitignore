@@ -13,6 +13,7 @@ dist/
 # created by python scripts
 __pycache__/
 .venv*
+venv/
 .ruff_cache/
 *.egg-info/
 
